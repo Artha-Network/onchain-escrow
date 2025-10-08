@@ -1,0 +1,91 @@
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Rust build artifacts
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Anchor build outputs
+.anchor/
+target/
+test-ledger/
+
+# Solana CLI
+test-ledger/
+.anchor/
+.DS_Store
+
+# Node.js (for tests)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Test artifacts
+coverage/
+.nyc_output
+*.lcov
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Cache directories
+.npm
+.eslintcache
+.cache
+.parcel-cache
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Solana specific
+*.json
+!package.json
+!tsconfig.json
+!Anchor.toml
+!Cargo.toml
+
+# Keypairs and wallets (security)
+*.json
+!package.json
+!tsconfig.json
+!Anchor.toml
+!Cargo.toml
+!**/docs/**/*.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp

@@ -1,0 +1,11 @@
+{
+  "name": "submit_evidence",
+  "type": "instruction",
+  "location": "programs/onchain_escrow/src/instructions/submit_evidence.rs",
+  "version": "1.0.0",
+  "inputs": { "cid": "String" },
+  "accounts": ["caller:Signer", "escrow_state:Account<EscrowState>"],
+  "emits": ["EvidenceSubmitted"],
+  "depends_on": ["storage-lib"]
+}
+

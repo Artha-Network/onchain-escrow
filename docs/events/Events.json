@@ -1,0 +1,17 @@
+{
+  "name": "Events",
+  "type": "events",
+  "location": "programs/onchain_escrow/src/events.rs",
+  "version": "1.0.0",
+  "events": [
+    { "name": "DealInitiated", "fields": ["deal_id:u128"] },
+    { "name": "DealFunded", "fields": ["deal_id:u128", "amount:u64"] },
+    { "name": "EvidenceSubmitted", "fields": ["deal_id:u128", "cid:String"] },
+    { "name": "DealDisputed", "fields": ["deal_id:u128"] },
+    { "name": "DealResolved", "fields": ["deal_id:u128", "action:String"] },
+    { "name": "DealReleased", "fields": ["deal_id:u128"] },
+    { "name": "DealRefunded", "fields": ["deal_id:u128"] }
+  ],
+  "consumed_by": ["jobs-service", "indexers"]
+}
+

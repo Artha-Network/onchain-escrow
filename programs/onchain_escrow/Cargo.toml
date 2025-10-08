@@ -1,0 +1,14 @@
+[package]
+name = "onchain_escrow"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "onchain_escrow"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+anchor-spl = "0.30.1"
+solana-program = "1.18.26"
+
