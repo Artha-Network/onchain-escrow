@@ -88,43 +88,42 @@ describe("onchain-escrow", () => {
 
     const vaultAta = getAssociatedTokenAddressSync(mint, vaultAuthority, true);
 
-    return {
-      seller,
-      buyer,
-      arbiter,
-      mint,
-      buyerAta: buyerAta.address,
-      sellerAta: sellerAta.address,
-      escrowState,
-      vaultAuthority,
-      vaultAta,
-    };
-  }
-
-  it("happy path release", async () => {
-    const amount = 1000;
-    const fixture = await setupEscrowFixture(amount);
-
-    // Initiate
     await program.methods
-      .initiate(new anchor.BN(amount), 250, Math.floor(Date.now() / 1000) + 86400)
+      .initiate(new anchor.BN(amount), 0, new anchor.BN(0))
       .accounts({
-        seller: fixture.seller.publicKey,
-        buyer: fixture.buyer.publicKey,
-        arbiter: fixture.arbiter.publicKey,
-        mint: fixture.mint,
-        escrowState: fixture.escrowState,
-        vaultAuthority: fixture.vaultAuthority,
-        vaultAta: fixture.vaultAta,
+        seller: seller.publicKey,
+        buyer: buyer.publicKey,
+        arbiter: arbiter.publicKey,
+        mint,
+        escrowState,
+        vaultAuthority,
+        vaultAta,
         systemProgram: SystemProgram.programId,
         tokenProgram: TOKEN_PROGRAM_ID,
         associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
       })
-      .signers([fixture.seller])
+      .signers([seller])
       .rpc();
 
-    // Fund
+    return {
+      amount,
+      seller,
+      buyer,
+      arbiter,
+      mint,
+      escrowState,
+      vaultAuthority,
+      vaultAta,
+      buyerAta: buyerAta.address,
+      sellerAta: sellerAta.address,
+    };
+  }
+
+  it("happy path release", async () => {
+    const amount = 100;
+    const fixture = await setupEscrowFixture(amount);
+
     await program.methods
       .fund()
       .accounts({
@@ -137,7 +136,6 @@ describe("onchain-escrow", () => {
       .signers([fixture.buyer])
       .rpc();
 
-    // Resolve to release
     await program.methods
       .resolve(VERDICT_RELEASE)
       .accounts({
@@ -147,7 +145,6 @@ describe("onchain-escrow", () => {
       .signers([fixture.arbiter])
       .rpc();
 
-    // Release
     await program.methods
       .release()
       .accounts({
@@ -161,13 +158,100 @@ describe("onchain-escrow", () => {
       .signers([fixture.seller])
       .rpc();
 
-    // Verify final state
-    const state = await program.account.escrowState.fetch(fixture.escrowState);
-    assert.equal(state.status.released, undefined); // Check status is Released
-    assert.equal(state.amount.toNumber(), 0); // Amount should be 0 after release
-    
     const sellerAtaAfter = await getAccount(provider.connection, fixture.sellerAta);
-    assert.equal(Number(sellerAtaAfter.amount), amount); // Seller received funds
+    const vaultAtaAfter = await getAccount(provider.connection, fixture.vaultAta);
+
+    assert.equal(Number(sellerAtaAfter.amount), amount);
+    assert.equal(Number(vaultAtaAfter.amount), 0);
+  });
+
+  it("rejects unauthorized fund and resolve", async () => {
+    const amount = 75;
+    const fixture = await setupEscrowFixture(amount);
+
+    await assert.rejects(
+      program.methods
+        .fund()
+        .accounts({
+          buyer: fixture.seller.publicKey,
+          escrowState: fixture.escrowState,
+          buyerAta: fixture.buyerAta,
+          vaultAta: fixture.vaultAta,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([fixture.seller])
+        .rpc(),
+      /Unauthorized signer/,
+    );
+
+    await program.methods
+      .fund()
+      .accounts({
+        buyer: fixture.buyer.publicKey,
+        escrowState: fixture.escrowState,
+        buyerAta: fixture.buyerAta,
+        vaultAta: fixture.vaultAta,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([fixture.buyer])
+      .rpc();
+
+    await assert.rejects(
+      program.methods
+        .resolve(VERDICT_RELEASE)
+        .accounts({
+          arbiter: fixture.buyer.publicKey,
+          escrowState: fixture.escrowState,
+        })
+        .signers([fixture.buyer])
+        .rpc(),
+      /Unauthorized signer/,
+    );
+  });
+
+  it("refund path returns funds to buyer", async () => {
+    const amount = 60;
+    const fixture = await setupEscrowFixture(amount);
+
+    await program.methods
+      .fund()
+      .accounts({
+        buyer: fixture.buyer.publicKey,
+        escrowState: fixture.escrowState,
+        buyerAta: fixture.buyerAta,
+        vaultAta: fixture.vaultAta,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([fixture.buyer])
+      .rpc();
+
+    await program.methods
+      .resolve(VERDICT_REFUND)
+      .accounts({
+        arbiter: fixture.arbiter.publicKey,
+        escrowState: fixture.escrowState,
+      })
+      .signers([fixture.arbiter])
+      .rpc();
+
+    await program.methods
+      .refund()
+      .accounts({
+        buyer: fixture.buyer.publicKey,
+        escrowState: fixture.escrowState,
+        vaultAuthority: fixture.vaultAuthority,
+        vaultAta: fixture.vaultAta,
+        buyerAta: fixture.buyerAta,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .signers([fixture.buyer])
+      .rpc();
+
+    const buyerAtaAfter = await getAccount(provider.connection, fixture.buyerAta);
+    const vaultAtaAfter = await getAccount(provider.connection, fixture.vaultAta);
+
+    assert.equal(Number(buyerAtaAfter.amount), amount);
+    assert.equal(Number(vaultAtaAfter.amount), 0);
   });
 
   it("end-to-end dispute flow with mock arbiter", async () => {
@@ -176,7 +260,7 @@ describe("onchain-escrow", () => {
 
     // 1. Initiate escrow
     await program.methods
-      .initiate(new anchor.BN(amount), 250, Math.floor(Date.now() / 1000) + 86400)
+      .initiate(new anchor.BN(amount), 250, Date.now() / 1000 + 86400)
       .accounts({
         seller: fixture.seller.publicKey,
         buyer: fixture.buyer.publicKey,

@@ -2,19 +2,16 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum EscrowError {
-    #[msg("Action not allowed in current state")] 
-    InvalidState,
-    #[msg("Caller not permitted")] 
+    #[msg("Unauthorized signer")]
     Unauthorized,
-    #[msg("ResolveTicket expired")] 
-    ExpiredTicket,
-    #[msg("Invalid arbiter signature")] 
-    SignatureInvalid,
-    #[msg("Insufficient funds")] 
+    #[msg("Invalid state transition")]
+    InvalidState,
+    #[msg("Mint or ATA mismatch")]
+    MintMismatch,
+    #[msg("Insufficient funds")]
     InsufficientFunds,
-    #[msg("Malformed or missing CID")] 
-    CIDInvalid,
-    #[msg("Vault account mismatch")] 
-    VaultMismatch,
+    #[msg("Dispute deadline passed")]
+    DeadlinePassed,
+    #[msg("Vault authority mismatch")]
+    VaultOwnerMismatch,
 }
-

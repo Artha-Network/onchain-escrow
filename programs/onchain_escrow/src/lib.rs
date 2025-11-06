@@ -1,51 +1,65 @@
 use anchor_lang::prelude::*;
 
-pub mod state { pub mod enums; pub mod price_snapshot; pub mod escrow_state; }
-pub mod events;
-pub mod errors;
-pub mod utils;
-pub mod instructions {
-    pub mod initiate;
-    pub mod fund;
-    pub mod open_dispute;
-    pub mod submit_evidence;
-    pub mod resolve;
-    pub mod release;
-    pub mod refund;
-}
+declare_id!("E4Vq17qHGG1PFr5h6vZdQUb3nxhjJB9dwMijiVdxfZLd");
 
-declare_id!("ArthaEscrow1111111111111111111111111111111");
+// Module declarations
+pub mod errors;
+pub mod events;
+pub mod state;
+pub mod utils;
+
+// Re-export everything from modules
+pub use errors::*;
+pub use events::*;
+pub use state::*;
+pub use utils::*;
+
+// Instruction modules - flatten the structure for Anchor
+pub mod initiate;
+pub mod fund;
+pub mod open_dispute;
+pub mod resolve;
+pub mod release;
+pub mod refund;
+
+// Re-export the contexts
+pub use initiate::*;
+pub use fund::*;
+pub use open_dispute::*;
+pub use resolve::*;
+pub use release::*;
+pub use refund::*;
 
 #[program]
 pub mod onchain_escrow {
     use super::*;
 
-    pub fn initiate(ctx: Context<instructions::initiate::Initiate>, deal_id: u128, fee_bps: u16, deliver_deadline: i64, dispute_deadline: i64) -> Result<()> {
-        instructions::initiate::handle(ctx, deal_id, fee_bps, deliver_deadline, dispute_deadline)
+    pub fn initiate(
+        ctx: Context<Initiate>,
+        amount: u64,
+        fee_bps: u16,
+        dispute_by: i64,
+    ) -> Result<()> {
+        initiate::handle(ctx, amount, fee_bps, dispute_by)
     }
 
-    pub fn fund(ctx: Context<instructions::fund::Fund>, amount: u64) -> Result<()> {
-        instructions::fund::handle(ctx, amount)
+    pub fn fund(ctx: Context<Fund>) -> Result<()> {
+        fund::handle(ctx)
     }
 
-    pub fn open_dispute(ctx: Context<instructions::open_dispute::OpenDispute>) -> Result<()> {
-        instructions::open_dispute::handle(ctx)
+    pub fn open_dispute(ctx: Context<OpenDispute>) -> Result<()> {
+        open_dispute::handle(ctx)
     }
 
-    pub fn submit_evidence(ctx: Context<instructions::submit_evidence::SubmitEvidence>, cid: String) -> Result<()> {
-        instructions::submit_evidence::handle(ctx, cid)
+    pub fn resolve(ctx: Context<Resolve>, verdict: u8) -> Result<()> {
+        resolve::handle(ctx, verdict)
     }
 
-    pub fn resolve(ctx: Context<instructions::resolve::Resolve>, action: instructions::resolve::ResolutionAction, nonce: u64, expires_at: i64, sig: [u8; 64]) -> Result<()> {
-        instructions::resolve::handle(ctx, action, nonce, expires_at, sig)
+    pub fn release(ctx: Context<Release>) -> Result<()> {
+        release::handle(ctx)
     }
 
-    pub fn release(ctx: Context<instructions::release::Release>) -> Result<()> {
-        instructions::release::handle(ctx)
-    }
-
-    pub fn refund(ctx: Context<instructions::refund::Refund>) -> Result<()> {
-        instructions::refund::handle(ctx)
+    pub fn refund(ctx: Context<Refund>) -> Result<()> {
+        refund::handle(ctx)
     }
 }
-
