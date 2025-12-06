@@ -1,8 +1,0 @@
-{
-  "name": "DealStatus",
-  "type": "enum",
-  "location": "programs/onchain_escrow/src/state/enums.rs",
-  "version": "1.0.0",
-  "variants": ["Init", "Funded", "Delivered", "Disputed", "Resolved", "Released", "Refunded"]
-}
-

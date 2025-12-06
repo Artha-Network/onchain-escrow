@@ -1,9 +1,0 @@
-{
-  "name": "open_dispute",
-  "type": "instruction",
-  "location": "programs/onchain_escrow/src/instructions/open_dispute.rs",
-  "version": "1.0.0",
-  "accounts": ["caller:Signer", "escrow_state:Account<EscrowState>"],
-  "emits": ["DealDisputed"]
-}
-

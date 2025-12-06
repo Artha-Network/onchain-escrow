@@ -1,0 +1,21 @@
+   Compiling serde_derive v1.0.228
+   Compiling bytemuck_derive v1.10.2
+   Compiling zeroize_derive v1.4.2
+   Compiling borsh-derive v1.5.7
+   Compiling curve25519-dalek-derive v0.1.1
+   Compiling thiserror-impl v1.0.69
+   Compiling thiserror-impl v2.0.17
+   Compiling solana-sdk-macro v2.2.1
+error: linker `cc` not found
+  |
+  = note: No such file or directory (os error 2)
+
+error: could not compile `curve25519-dalek-derive` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `zeroize_derive` (lib) due to 1 previous error
+error: could not compile `solana-sdk-macro` (lib) due to 1 previous error
+error: could not compile `bytemuck_derive` (lib) due to 1 previous error
+error: could not compile `thiserror-impl` (lib) due to 1 previous error
+error: could not compile `thiserror-impl` (lib) due to 1 previous error
+error: could not compile `borsh-derive` (lib) due to 1 previous error
+error: could not compile `serde_derive` (lib) due to 1 previous error

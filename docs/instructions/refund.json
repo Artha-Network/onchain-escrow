@@ -1,9 +1,0 @@
-{
-  "name": "refund",
-  "type": "instruction",
-  "location": "programs/onchain_escrow/src/instructions/refund.rs",
-  "version": "1.0.0",
-  "accounts": ["seller:Signer", "escrow_state:Account<EscrowState>"],
-  "emits": ["DealRefunded"]
-}
-

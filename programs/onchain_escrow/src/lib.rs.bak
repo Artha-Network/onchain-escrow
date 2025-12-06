@@ -1,0 +1,55 @@
+use anchor_lang::prelude::*;
+
+declare_id!("8HT9LQo8KAtL9kyP4q3pDqtHAc6dwmjSKcvs6XNxTQyC");
+
+pub mod errors;
+pub mod events;
+pub mod state;
+pub mod utils;
+
+pub mod fund;
+pub mod initiate;
+pub mod open_dispute;
+pub mod release;
+pub mod refund;
+pub mod resolve;
+
+use crate::errors::EscrowError;
+use crate::events::*;
+use crate::state::*;
+use crate::utils::*;
+use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
+
+#[program]
+pub mod onchain_escrow {
+    use super::*;
+
+    pub fn initiate(
+        ctx: Context<initiate::Initiate>,
+        amount: u64,
+        fee_bps: u16,
+        dispute_by: i64,
+    ) -> Result<()> {
+        initiate::handle(ctx, amount, fee_bps, dispute_by)
+    }
+
+    pub fn fund(ctx: Context<fund::Fund>) -> Result<()> {
+        fund::handle(ctx)
+    }
+
+    pub fn open_dispute(ctx: Context<open_dispute::OpenDispute>) -> Result<()> {
+        open_dispute::handle(ctx)
+    }
+
+    pub fn resolve(ctx: Context<resolve::Resolve>, verdict: u8) -> Result<()> {
+        resolve::handle(ctx, verdict)
+    }
+
+    pub fn release(ctx: Context<release::Release>) -> Result<()> {
+        release::handle(ctx)
+    }
+
+    pub fn refund(ctx: Context<refund::Refund>) -> Result<()> {
+        refund::handle(ctx)
+    }
+}

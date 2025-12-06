@@ -1,8 +1,0 @@
-{
-  "name": "PriceSnapshot",
-  "type": "struct",
-  "location": "programs/onchain_escrow/src/state/price_snapshot.rs",
-  "version": "1.0.0",
-  "fields": ["feed_id:[u8;32]", "price:i64", "conf:u64", "slot:u64"]
-}
-
