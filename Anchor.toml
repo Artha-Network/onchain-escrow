@@ -4,9 +4,6 @@ anchor_version = "0.32.1"
 [features]
 seeds = true
 
-[programs.localnet]
-onchain_escrow = "HM1zYGd6WVH8e73U9QZW8spamWmLqzd391raEsfiNzEZ"
-
 [programs.devnet]
 onchain_escrow = "HM1zYGd6WVH8e73U9QZW8spamWmLqzd391raEsfiNzEZ"
 
