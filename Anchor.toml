@@ -2,17 +2,18 @@
 anchor_version = "0.32.1"
 
 [features]
-seeds = true
+resolution = true
+skip-lint = false
 
 [programs.devnet]
-onchain_escrow = "HM1zYGd6WVH8e73U9QZW8spamWmLqzd391raEsfiNzEZ"
+onchain_escrow = "B1a1oejNg8uWz7USuuFSqmRQRUSZ95kk2e4PzRZ7Uti4"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
-cluster = "Devnet"
-wallet = "/home/mbirochan/.config/solana/arthadev.json"
+cluster = "devnet"
+wallet = "~/.config/solana/arthadev.json"
 
 [scripts]
 test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

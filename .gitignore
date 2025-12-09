@@ -84,6 +84,8 @@ Thumbs.db
 !Cargo.toml
 !**/docs/**/*.json
 
+
+
 # Temporary files
 tmp/
 temp/

@@ -1,0 +1,28 @@
+warning: in the working copy of 'Anchor.toml', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/Anchor.toml b/Anchor.toml[m
+[1mindex 891b3d2..3c4a07f 100644[m
+[1m--- a/Anchor.toml[m
+[1m+++ b/Anchor.toml[m
+[36m@@ -2,17 +2,18 @@[m
+ anchor_version = "0.32.1"[m
+ [m
+ [features][m
+[31m-seeds = true[m
+[32m+[m[32mresolution = true[m
+[32m+[m[32mskip-lint = false[m
+ [m
+ [programs.devnet][m
+[31m-onchain_escrow = "HM1zYGd6WVH8e73U9QZW8spamWmLqzd391raEsfiNzEZ"[m
+[32m+[m[32monchain_escrow = "HwPkmjvQMHzRuyUYWcqibNQu4KFMLTqqMYFfgHhZvtBT"[m
+ [m
+ [registry][m
+ url = "https://anchor.projectserum.com"[m
+ [m
+ [provider][m
+[31m-cluster = "Devnet"[m
+[31m-wallet = "/home/mbirochan/.config/solana/arthadev.json"[m
+[32m+[m[32mcluster = "devnet"[m
+[32m+[m[32mwallet = "~/.config/solana/arthadev.json"[m
+ [m
+ [scripts][m
+ test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"[m

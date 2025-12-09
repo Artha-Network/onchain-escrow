@@ -3,7 +3,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{Mint, Token, TokenAccount, Transfer};
 use anchor_spl::token;
 
-declare_id!("HM1zYGd6WVH8e73U9QZW8spamWmLqzd391raEsfiNzEZ");
+declare_id!("B1a1oejNg8uWz7USuuFSqmRQRUSZ95kk2e4PzRZ7Uti4");
 
 pub mod errors;
 pub mod events;
@@ -24,12 +24,16 @@ pub mod onchain_escrow_program {
         amount: u64,
         fee_bps: u16,
         dispute_by: i64,
+        deal_id: [u8; 16], // UUID as 16 bytes
     ) -> Result<()> {
-        handle_initiate(ctx, amount, fee_bps, dispute_by)
+        handle_initiate(ctx, amount, fee_bps, dispute_by, deal_id)
     }
 
-    pub fn fund(ctx: Context<Fund>) -> Result<()> {
-        handle_fund(ctx)
+    pub fn fund(
+        ctx: Context<Fund>,
+        deal_id: [u8; 16], // UUID as 16 bytes - used to verify escrow_state PDA
+    ) -> Result<()> {
+        handle_fund(ctx, deal_id)
     }
 
     pub fn open_dispute(ctx: Context<OpenDispute>) -> Result<()> {
@@ -40,17 +44,24 @@ pub mod onchain_escrow_program {
         handle_resolve(ctx, verdict)
     }
 
-    pub fn release(ctx: Context<Release>) -> Result<()> {
-        handle_release(ctx)
+    pub fn release(
+        ctx: Context<Release>,
+        deal_id: [u8; 16], // UUID as 16 bytes - used to verify escrow_state PDA
+    ) -> Result<()> {
+        handle_release(ctx, deal_id)
     }
 
-    pub fn refund(ctx: Context<Refund>) -> Result<()> {
-        handle_refund(ctx)
+    pub fn refund(
+        ctx: Context<Refund>,
+        deal_id: [u8; 16], // UUID as 16 bytes - used to verify escrow_state PDA
+    ) -> Result<()> {
+        handle_refund(ctx, deal_id)
     }
 }
 
 // --- Initiate Handler ---
 #[derive(Accounts)]
+#[instruction(deal_id: [u8; 16])]
 pub struct Initiate<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
@@ -66,9 +77,7 @@ pub struct Initiate<'info> {
         payer = payer,
         seeds = [
             b"escrow",
-            seller.key().as_ref(),
-            buyer.key().as_ref(),
-            mint.key().as_ref(),
+            deal_id.as_ref(), // deal_id as [u8; 16] converted to slice
         ],
         bump,
         space = EscrowState::space()
@@ -98,6 +107,7 @@ pub fn handle_initiate(
     amount: u64,
     fee_bps: u16,
     dispute_by: i64,
+    _deal_id: [u8; 16], // Still in instruction signature but not used in PDA seeds
 ) -> Result<()> {
     require!(amount > 0, EscrowError::InsufficientFunds);
 
@@ -132,11 +142,17 @@ pub fn handle_initiate(
 
 // --- Fund Handler ---
 #[derive(Accounts)]
+#[instruction(deal_id: [u8; 16])]
 pub struct Fund<'info> {
     #[account(mut)]
     pub buyer: Signer<'info>,
     #[account(
         mut,
+        seeds = [
+            b"escrow",
+            deal_id.as_ref(), // Verify escrow_state PDA matches deal_id
+        ],
+        bump,
         constraint = escrow_state.buyer == buyer.key() @ EscrowError::Unauthorized,
         constraint = escrow_state.status == EscrowStatus::Init @ EscrowError::InvalidState,
         constraint = escrow_state.amount > 0 @ EscrowError::InsufficientFunds,
@@ -157,7 +173,7 @@ pub struct Fund<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handle_fund(ctx: Context<Fund>) -> Result<()> {
+pub fn handle_fund(ctx: Context<Fund>, _deal_id: [u8; 16]) -> Result<()> {
     let expected_vault = ctx.accounts.vault_authority_key()?;
     let state = &mut ctx.accounts.escrow_state;
     require_keys_eq!(
@@ -265,11 +281,17 @@ pub fn handle_resolve(ctx: Context<Resolve>, verdict: u8) -> Result<()> {
 
 // --- Release Handler ---
 #[derive(Accounts)]
+#[instruction(deal_id: [u8; 16])]
 pub struct Release<'info> {
     #[account(mut)]
     pub seller: Signer<'info>,
     #[account(
         mut,
+        seeds = [
+            b"escrow",
+            deal_id.as_ref(), // Verify escrow_state PDA matches deal_id
+        ],
+        bump,
         constraint = escrow_state.seller == seller.key() @ EscrowError::Unauthorized,
         constraint = escrow_state.status == EscrowStatus::Resolved @ EscrowError::InvalidState,
     )]
@@ -292,7 +314,7 @@ pub struct Release<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handle_release(ctx: Context<Release>) -> Result<()> {
+pub fn handle_release(ctx: Context<Release>, _deal_id: [u8; 16]) -> Result<()> {
     let escrow_state_key = ctx.accounts.escrow_state.key();
     let bump = ctx.accounts.escrow_state.bump;
     let bump_seed = [bump];
@@ -342,11 +364,17 @@ pub fn handle_release(ctx: Context<Release>) -> Result<()> {
 
 // --- Refund Handler ---
 #[derive(Accounts)]
+#[instruction(deal_id: [u8; 16])]
 pub struct Refund<'info> {
     #[account(mut)]
     pub buyer: Signer<'info>,
     #[account(
         mut,
+        seeds = [
+            b"escrow",
+            deal_id.as_ref(), // Verify escrow_state PDA matches deal_id
+        ],
+        bump,
         constraint = escrow_state.buyer == buyer.key() @ EscrowError::Unauthorized,
         constraint = escrow_state.status == EscrowStatus::Resolved @ EscrowError::InvalidState,
     )]
@@ -369,7 +397,7 @@ pub struct Refund<'info> {
     pub token_program: Program<'info, Token>,
 }
 
-pub fn handle_refund(ctx: Context<Refund>) -> Result<()> {
+pub fn handle_refund(ctx: Context<Refund>, _deal_id: [u8; 16]) -> Result<()> {
     let escrow_state_key = ctx.accounts.escrow_state.key();
     let bump = ctx.accounts.escrow_state.bump;
     let bump_seed = [bump];
